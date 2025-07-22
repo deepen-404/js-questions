@@ -1,11 +1,25 @@
+/**
+ * A generic event emitter class implementing the Observer pattern.
+ * @template TEvent The type of event names, must extend string
+ */
 class MyEventEmitter<TEvent extends string = string> {
+  /**
+   * Internal storage for event listeners
+   * @private
+   */
   #eventListeners: Partial<Record<TEvent, Array<Function>>>;
 
   constructor() {
     this.#eventListeners = {};
   }
 
-  on(event: TEvent, listener: Function) {
+  /**
+   * Registers a listener function for a specific event
+   * @param event The event name to listen for
+   * @param listener The callback function to execute when the event is emitted
+   * @returns {boolean} True if the listener was successfully added
+   */
+  on(event: TEvent, listener: Function): boolean {
     let requiredEvent = this.#eventListeners[event];
 
     if (!requiredEvent) {
@@ -17,7 +31,13 @@ class MyEventEmitter<TEvent extends string = string> {
     return true;
   }
 
-  emit(event: TEvent, ...args: Array<unknown>) {
+  /**
+   * Triggers all listeners for a specific event
+   * @param event The event name to emit
+   * @param args Additional arguments to pass to the listeners
+   * @returns {boolean} True if the event had listeners, false otherwise
+   */
+  emit(event: TEvent, ...args: Array<unknown>): boolean {
     const listeners = this.#eventListeners[event];
 
     if (!listeners) return false;
@@ -26,7 +46,13 @@ class MyEventEmitter<TEvent extends string = string> {
     return true;
   }
 
-  off(event: TEvent, listener: Function) {
+  /**
+   * Removes a specific listener for an event
+   * @param event The event name
+   * @param listener The callback function to remove
+   * @returns {boolean} True if the listener was found and removed, false otherwise
+   */
+  off(event: TEvent, listener: Function): boolean {
     const listeners = this.#eventListeners[event];
 
     if (!listeners) return false;
@@ -36,7 +62,12 @@ class MyEventEmitter<TEvent extends string = string> {
     return true;
   }
 
-  once(event: TEvent, listener: Function) {
+  /**
+   * Registers a listener that will be called at most once
+   * @param event The event name to listen for
+   * @param listener The callback function to execute once when the event is emitted
+   */
+  once(event: TEvent, listener: Function): void {
     const wrapper = (...args: Array<unknown>) => {
       listener(...args);
       this.off(event, wrapper);
