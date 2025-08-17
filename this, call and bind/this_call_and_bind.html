@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript 'this', call, apply, and bind</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: rgba(30, 41, 59, 0.95);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(75, 85, 99, 0.3);
+    }
+
+    h1 {
+      color: #f8fafc;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    h2 {
+      color: #60a5fa;
+      border-bottom: 3px solid #60a5fa;
+      padding-bottom: 10px;
+      margin-top: 40px;
+    }
+
+    h3 {
+      color: #f472b6;
+      margin-top: 30px;
+    }
+
+    .code-block {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      border-left: 5px solid #60a5fa;
+      border: 1px solid #374151;
+    }
+
+    .output {
+      background: #111827;
+      border: 2px solid #374151;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      white-space: pre-wrap;
+      color: #d1d5db;
+    }
+
+    .demo-button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .demo-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .highlight {
+      background: #fff3cd;
+      padding: 15px;
+      border-left: 5px solid #ffc107;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .section {
+      margin: 40px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 1px solid #e9ecef;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>JavaScript 'this', call, apply, and bind</h1>
+
+    <div class="section">
+      <h2>1. Understanding 'this' in Different Contexts</h2>
+
+      <h3>Global Context</h3>
+      <div class="code-block">
+        console.log(this); // In browser: Window object, In Node.js: global object
+      </div>
+
+      <h3>Object Method Context</h3>
+      <div class="code-block">
+        const person = {
+        name: 'Alice',
+        greet: function() {
+        console.log(`Hello, I'm ${this.name}`);
+        console.log('this refers to:', this);
+        }
+        };
+      </div>
+      <button class="demo-button" onclick="objectMethodDemo()">Run Object Method Demo</button>
+      <div id="objectMethodOutput" class="output"></div>
+
+      <h3>Function Context (Standalone Function)</h3>
+      <div class="code-block">
+        function standAloneFunction() {
+        console.log('this in standalone function:', this);
+        // In strict mode: undefined
+        // In non-strict mode: window/global object
+        }
+      </div>
+      <button class="demo-button" onclick="standaloneFunctionDemo()">Run Standalone Function Demo</button>
+      <div id="standaloneFunctionOutput" class="output"></div>
+
+      <h3>Arrow Functions</h3>
+      <div class="code-block">
+        const obj = {
+        name: 'Bob',
+        regularFunction: function() {
+        console.log('Regular function this:', this.name);
+
+        const arrowFunction = () => {
+        console.log('Arrow function this:', this.name);
+        // Arrow function inherits 'this' from regularFunction
+        };
+        arrowFunction();
+        }
+        };
+      </div>
+      <button class="demo-button" onclick="arrowFunctionDemo()">Run Arrow Function Demo</button>
+      <div id="arrowFunctionOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>2. The call() Method</h2>
+      <div class="highlight">
+        <strong>call()</strong> - Calls a function with a specific 'this' value and arguments provided individually
+      </div>
+
+      <div class="code-block">
+        function introduce(age, city) {
+        return `Hi, I'm ${this.name}, ${age} years old from ${city}`;
+        }
+
+        const person1 = { name: 'Charlie' };
+        const person2 = { name: 'Diana' };
+
+        // Using call to set 'this' to person1
+        const result = introduce.call(person1, 25, 'New York');
+      </div>
+      <button class="demo-button" onclick="callDemo()">Run call() Demo</button>
+      <div id="callOutput" class="output"></div>
+
+      <h3>Practical Example: Borrowing Array Methods</h3>
+      <div class="code-block">
+        const arrayLike = {
+        0: 'apple',
+        1: 'banana',
+        2: 'cherry',
+        length: 3
+        };
+
+        // Borrowing Array's slice method
+        const result = Array.prototype.slice.call(arrayLike, 1);
+      </div>
+      <button class="demo-button" onclick="borrowArrayMethodDemo()">Run Array Method Borrowing Demo</button>
+      <div id="borrowArrayMethodOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>3. The apply() Method</h2>
+      <div class="highlight">
+        <strong>apply()</strong> - Similar to call(), but arguments are passed as an array
+      </div>
+
+      <div class="code-block">
+        function sum(a, b, c) {
+        console.log(`${this.name} is calculating: ${a} + ${b} + ${c}`);
+        return a + b + c;
+        }
+
+        const calculator = { name: 'SuperCalculator' };
+        const numbers = [10, 20, 30];
+
+        // Using apply with array of arguments
+        const result = sum.apply(calculator, numbers);
+      </div>
+      <button class="demo-button" onclick="applyDemo()">Run apply() Demo</button>
+      <div id="applyOutput" class="output"></div>
+
+      <h3>Finding Max/Min in Arrays (Before Math.max(...array))</h3>
+      <div class="code-block">
+        const numbers = [1, 5, 3, 9, 2, 8];
+
+        // Using apply to find max
+        const max = Math.max.apply(null, numbers);
+        const min = Math.min.apply(null, numbers);
+      </div>
+      <button class="demo-button" onclick="mathApplyDemo()">Run Math apply() Demo</button>
+      <div id="mathApplyOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>4. The bind() Method</h2>
+      <div class="highlight">
+        <strong>bind()</strong> - Creates a new function with a specific 'this' value permanently bound
+      </div>
+
+      <div class="code-block">
+        const person = {
+        name: 'Eva',
+        greet: function(greeting) {
+        return `${greeting}, I'm ${this.name}!`;
+        }
+        };
+
+        // Create a bound function
+        const boundGreet = person.greet.bind(person);
+
+        // Even when called separately, 'this' is still 'person'
+        const result = boundGreet('Hello');
+      </div>
+      <button class="demo-button" onclick="bindDemo()">Run bind() Demo</button>
+      <div id="bindOutput" class="output"></div>
+
+      <h3>Partial Application with bind()</h3>
+      <div class="code-block">
+        function multiply(a, b, c) {
+        return a * b * c;
+        }
+
+        // Pre-fill first argument
+        const multiplyByTwo = multiply.bind(null, 2);
+
+        // Pre-fill first two arguments
+        const multiplyByTwoAndThree = multiply.bind(null, 2, 3);
+      </div>
+      <button class="demo-button" onclick="partialApplicationDemo()">Run Partial Application Demo</button>
+      <div id="partialApplicationOutput" class="output"></div>
+
+      <h3>Event Handlers with bind()</h3>
+      <div class="code-block">
+        class Button {
+        constructor(element, name) {
+        this.element = element;
+        this.name = name;
+        this.clickCount = 0;
+
+        // Without bind, 'this' would be the button element
+        this.element.addEventListener('click', this.handleClick.bind(this));
+        }
+
+        handleClick() {
+        this.clickCount++;
+        console.log(`${this.name} clicked ${this.clickCount} times`);
+        }
+        }
+      </div>
+      <button class="demo-button" id="eventButton">Click Me!</button>
+      <button class="demo-button" onclick="setupEventDemo()">Setup Event Handler Demo</button>
+      <div id="eventOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>5. Comparison: call vs apply vs bind</h2>
+
+      <div class="code-block">
+        function greet(greeting, punctuation) {
+        return `${greeting}, I'm ${this.name}${punctuation}`;
+        }
+
+        const person = { name: 'Frank' };
+
+        // call: arguments individually
+        const callResult = greet.call(person, 'Hello', '!');
+
+        // apply: arguments as array
+        const applyResult = greet.apply(person, ['Hi', '?']);
+
+        // bind: returns new function
+        const boundGreet = greet.bind(person, 'Hey');
+        const bindResult = boundGreet('.');
+      </div>
+      <button class="demo-button" onclick="comparisonDemo()">Run Comparison Demo</button>
+      <div id="comparisonOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+      <h2>6. Real-World Examples</h2>
+
+      <h3>Method Chaining with Different Contexts</h3>
+      <div class="code-block">
+        const logger = {
+        prefix: '[LOG]',
+        log: function(message) {
+        console.log(`${this.prefix} ${message}`);
+        return this; // Enable chaining
+        }
+        };
+
+        const errorLogger = {
+        prefix: '[ERROR]',
+        log: logger.log // Borrow the method
+        };
+      </div>
+      <button class="demo-button" onclick="methodChainingDemo()">Run Method Chaining Demo</button>
+      <div id="methodChainingOutput" class="output"></div>
+
+      <h3>Constructor Function Pattern</h3>
+      <div class="code-block">
+        function Animal(name, species) {
+        this.name = name;
+        this.species = species;
+        }
+
+        function Dog(name, breed) {
+        // Call Animal constructor with Dog's context
+        Animal.call(this, name, 'Canine');
+        this.breed = breed;
+        }
+
+        const myDog = new Dog('Buddy', 'Golden Retriever');
+      </div>
+      <button class="demo-button" onclick="constructorPatternDemo()">Run Constructor Pattern Demo</button>
+      <div id="constructorPatternOutput" class="output"></div>
+    </div>
+  </div>
+
+  <script>
+    function objectMethodDemo() {
+      const person = {
+        name: 'Alice',
+        greet: function () {
+          return {
+            message: `Hello, I'm ${this.name}`,
+            thisRefers: 'person object'
+          };
+        }
+      };
+
+      const result = person.greet();
+      document.getElementById('objectMethodOutput').textContent =
+        `Message: ${result.message}\nThis refers to: ${result.thisRefers}`;
+    }
+
+    function standaloneFunctionDemo() {
+      function standAloneFunction() {
+        return {
+          thisType: typeof this,
+          isWindow: this === window,
+          isUndefined: this === undefined
+        };
+      }
+
+      const result = standAloneFunction();
+      document.getElementById('standaloneFunctionOutput').textContent =
+        `This type: ${result.thisType}\nIs window: ${result.isWindow}\nIs undefined: ${result.isUndefined}`;
+    }
+
+    function arrowFunctionDemo() {
+      const obj = {
+        name: 'Bob',
+        regularFunction: function () {
+          const results = [];
+          results.push(`Regular function this.name: ${this.name}`);
+
+          const arrowFunction = () => {
+            results.push(`Arrow function this.name: ${this.name}`);
+            results.push('Arrow function inherits "this" from regularFunction');
+          };
+          arrowFunction();
+
+          return results.join('\n');
+        }
+      };
+
+      const result = obj.regularFunction();
+      document.getElementById('arrowFunctionOutput').textContent = result;
+    }
+
+    function callDemo() {
+      function introduce(age, city) {
+        return `Hi, I'm ${this.name}, ${age} years old from ${city}`;
+      }
+
+      const person1 = { name: 'Charlie' };
+      const person2 = { name: 'Diana' };
+
+      const result1 = introduce.call(person1, 25, 'New York');
+      const result2 = introduce.call(person2, 30, 'London');
+
+      document.getElementById('callOutput').textContent =
+        `Person 1: ${result1}\nPerson 2: ${result2}`;
+    }
+
+    function borrowArrayMethodDemo() {
+      const arrayLike = {
+        0: 'apple',
+        1: 'banana',
+        2: 'cherry',
+        length: 3
+      };
+
+      const sliceResult = Array.prototype.slice.call(arrayLike, 1);
+      const joinResult = Array.prototype.join.call(arrayLike, ' - ');
+
+      document.getElementById('borrowArrayMethodOutput').textContent =
+        `Original object: ${JSON.stringify(arrayLike)}\nSliced (from index 1): [${sliceResult}]\nJoined with ' - ': ${joinResult}`;
+    }
+
+    function applyDemo() {
+      function sum(a, b, c) {
+        return {
+          calculation: `${this.name} calculated: ${a} + ${b} + ${c}`,
+          result: a + b + c
+        };
+      }
+
+      const calculator = { name: 'SuperCalculator' };
+      const numbers = [10, 20, 30];
+
+      const result = sum.apply(calculator, numbers);
+
+      document.getElementById('applyOutput').textContent =
+        `${result.calculation} = ${result.result}`;
+    }
+
+    function mathApplyDemo() {
+      const numbers = [1, 5, 3, 9, 2, 8];
+
+      const max = Math.max.apply(null, numbers);
+      const min = Math.min.apply(null, numbers);
+
+      document.getElementById('mathApplyOutput').textContent =
+        `Numbers: [${numbers.join(', ')}]\nMax: ${max}\nMin: ${min}`;
+    }
+
+    function bindDemo() {
+      const person = {
+        name: 'Eva',
+        greet: function (greeting) {
+          return `${greeting}, I'm ${this.name}!`;
+        }
+      };
+
+      const boundGreet = person.greet.bind(person);
+
+      // Even when assigned to a variable and called separately
+      const standaloneGreet = boundGreet;
+
+      const result1 = boundGreet('Hello');
+      const result2 = standaloneGreet('Hi');
+
+      document.getElementById('bindOutput').textContent =
+        `Bound function call 1: ${result1}\nBound function call 2: ${result2}\nNote: 'this' remains bound to person object`;
+    }
+
+    function partialApplicationDemo() {
+      function multiply(a, b, c) {
+        return a * b * c;
+      }
+
+      const multiplyByTwo = multiply.bind(null, 2);
+      const multiplyByTwoAndThree = multiply.bind(null, 2, 3);
+
+      const result1 = multiplyByTwo(5, 10); // 2 * 5 * 10
+      const result2 = multiplyByTwoAndThree(7); // 2 * 3 * 7
+
+      document.getElementById('partialApplicationOutput').textContent =
+        `multiplyByTwo(5, 10) = ${result1}\nmultiplyByTwoAndThree(7) = ${result2}`;
+    }
+
+    let buttonInstance = null;
+
+    function setupEventDemo() {
+      class Button {
+        constructor(element, name) {
+          this.element = element;
+          this.name = name;
+          this.clickCount = 0;
+
+          // Remove previous event listener if exists
+          this.element.removeEventListener('click', this.handleClick);
+
+          // Bind this to maintain context
+          this.boundHandleClick = this.handleClick.bind(this);
+          this.element.addEventListener('click', this.boundHandleClick);
+        }
+
+        handleClick() {
+          this.clickCount++;
+          document.getElementById('eventOutput').textContent =
+            `${this.name} clicked ${this.clickCount} times\nThis refers to Button instance, not the DOM element`;
+        }
+      }
+
+      buttonInstance = new Button(document.getElementById('eventButton'), 'DemoButton');
+      document.getElementById('eventOutput').textContent = 'Event handler setup complete! Click the "Click Me!" button above.';
+    }
+
+    function comparisonDemo() {
+      function greet(greeting, punctuation) {
+        return `${greeting}, I'm ${this.name}${punctuation}`;
+      }
+
+      const person = { name: 'Frank' };
+
+      // call: arguments individually
+      const callResult = greet.call(person, 'Hello', '!');
+
+      // apply: arguments as array
+      const applyResult = greet.apply(person, ['Hi', '?']);
+
+      // bind: returns new function
+      const boundGreet = greet.bind(person, 'Hey');
+      const bindResult = boundGreet('.');
+
+      document.getElementById('comparisonOutput').textContent =
+        `call result: ${callResult}\napply result: ${applyResult}\nbind result: ${bindResult}`;
+    }
+
+    function methodChainingDemo() {
+      const logger = {
+        prefix: '[LOG]',
+        messages: [],
+        log: function (message) {
+          this.messages.push(`${this.prefix} ${message}`);
+          return this;
+        }
+      };
+
+      const errorLogger = {
+        prefix: '[ERROR]',
+        messages: [],
+        log: logger.log // Borrow the method
+      };
+
+      // Using call to set correct context
+      logger.log.call(errorLogger, 'Something went wrong');
+      logger.log.call(errorLogger, 'Critical error');
+
+      document.getElementById('methodChainingOutput').textContent =
+        `Error messages: ${errorLogger.messages.join('\n')}`;
+    }
+
+    function constructorPatternDemo() {
+      function Animal(name, species) {
+        this.name = name;
+        this.species = species;
+        this.toString = function () {
+          return `${this.name} is a ${this.species}`;
+        };
+      }
+
+      function Dog(name, breed) {
+        // Call Animal constructor with Dog's context
+        Animal.call(this, name, 'Canine');
+        this.breed = breed;
+        this.bark = function () {
+          return `${this.name} says Woof!`;
+        };
+      }
+
+      const myDog = new Dog('Buddy', 'Golden Retriever');
+
+      document.getElementById('constructorPatternOutput').textContent =
+        `Name: ${myDog.name}\nSpecies: ${myDog.species}\nBreed: ${myDog.breed}\nAnimal toString: ${myDog.toString()}\nDog bark: ${myDog.bark()}`;
+    }
+  </script>
+</body>
+
+</html>
